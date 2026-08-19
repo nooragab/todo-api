@@ -1,6 +1,10 @@
 from fastapi import FastAPI, HTTPException
 
-app = FastAPI()
+app = FastAPI(
+    title="Task API",
+    description="A simple CRUD API for managing to-do tasks.",
+    version="1.0"
+)
 
 tasks = [
     {"id": 1, "title": "Buy milk", "done": False},
@@ -9,7 +13,11 @@ tasks = [
 ]
 
 
-@app.get("/")
+@app.get(
+    "/",
+    summary="Get API information",
+    description="Returns basic information about the Task API."
+)
 def read_root():
     return {
         "name": "Task API",
@@ -18,17 +26,29 @@ def read_root():
     }
 
 
-@app.get("/health")
+@app.get(
+    "/health",
+    summary="Check API health",
+    description="Returns the current health status of the API."
+)
 def health_check():
     return {"status": "ok"}
 
 
-@app.get("/tasks")
+@app.get(
+    "/tasks",
+    summary="Get all tasks",
+    description="Returns all tasks in the to-do list."
+)
 def get_tasks():
     return tasks
 
 
-@app.get("/tasks/{task_id}")
+@app.get(
+    "/tasks/{task_id}",
+    summary="Get a single task",
+    description="Returns a task by its ID. Returns 404 if the task does not exist."
+)
 def get_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
@@ -40,7 +60,12 @@ def get_task(task_id: int):
     )
 
 
-@app.post("/tasks", status_code=201)
+@app.post(
+    "/tasks",
+    status_code=201,
+    summary="Create a task",
+    description="Creates a new task with a title and sets done to false."
+)
 def create_task(task: dict):
     if "title" not in task or not task["title"].strip():
         raise HTTPException(
@@ -59,7 +84,11 @@ def create_task(task: dict):
     return new_task
 
 
-@app.put("/tasks/{task_id}")
+@app.put(
+    "/tasks/{task_id}",
+    summary="Update a task",
+    description="Updates the title and/or completion status of an existing task."
+)
 def update_task(task_id: int, task: dict):
     if "title" not in task and "done" not in task:
         raise HTTPException(
@@ -101,7 +130,12 @@ def update_task(task_id: int, task: dict):
     )
 
 
-@app.delete("/tasks/{task_id}", status_code=204)
+@app.delete(
+    "/tasks/{task_id}",
+    status_code=204,
+    summary="Delete a task",
+    description="Deletes an existing task by its ID."
+)
 def delete_task(task_id: int):
     for i, task in enumerate(tasks):
         if task["id"] == task_id:
@@ -111,4 +145,4 @@ def delete_task(task_id: int):
     raise HTTPException(
         status_code=404,
         detail=f"Task {task_id} not found"
-    )    
+    )
