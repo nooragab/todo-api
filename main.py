@@ -36,3 +36,17 @@ def get_task(task_id: int):
         if tasks[i]["id"] == task_id:
             return tasks[i]
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+
+@app.post("/tasks", status_code=201)
+def create_task(task: dict):
+    if "title" not in task or not task["title"].strip():
+        raise HTTPException(status_code=400, detail="Title is required")
+
+    new_task = {
+        "id": max([t["id"] for t in tasks]) + 1,
+        "title": task["title"],
+        "done": False
+    }
+
+    tasks.append(new_task)
+    return new_task
