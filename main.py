@@ -2,8 +2,6 @@ from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
-print("MY MAIN FILE IS RUNNING")
-
 tasks = [
     {"id": 1, "title": "Buy milk", "done": False},
     {"id": 2, "title": "Read a book", "done": True},
@@ -32,15 +30,23 @@ def get_tasks():
 
 @app.get("/tasks/{task_id}")
 def get_task(task_id: int):
-    for i in range(len(tasks)):
-        if tasks[i]["id"] == task_id:
-            return tasks[i]
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    for task in tasks:
+        if task["id"] == task_id:
+            return task
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"Task {task_id} not found"
+    )
+
 
 @app.post("/tasks", status_code=201)
 def create_task(task: dict):
     if "title" not in task or not task["title"].strip():
-        raise HTTPException(status_code=400, detail="Title is required")
+        raise HTTPException(
+            status_code=400,
+            detail="Title is required"
+        )
 
     new_task = {
         "id": max([t["id"] for t in tasks]) + 1,
@@ -49,4 +55,60 @@ def create_task(task: dict):
     }
 
     tasks.append(new_task)
+
     return new_task
+
+
+@app.put("/tasks/{task_id}")
+def update_task(task_id: int, task: dict):
+    if "title" not in task and "done" not in task:
+        raise HTTPException(
+            status_code=400,
+            detail="At least title or done is required"
+        )
+
+    if "title" in task and not isinstance(task["title"], str):
+        raise HTTPException(
+            status_code=400,
+            detail="Title must be text"
+        )
+
+    if "title" in task and not task["title"].strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Title cannot be empty"
+        )
+
+    if "done" in task and not isinstance(task["done"], bool):
+        raise HTTPException(
+            status_code=400,
+            detail="Done must be true or false"
+        )
+
+    for existing_task in tasks:
+        if existing_task["id"] == task_id:
+            if "title" in task:
+                existing_task["title"] = task["title"]
+
+            if "done" in task:
+                existing_task["done"] = task["done"]
+
+            return existing_task
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"Task {task_id} not found"
+    )
+
+
+@app.delete("/tasks/{task_id}", status_code=204)
+def delete_task(task_id: int):
+    for i, task in enumerate(tasks):
+        if task["id"] == task_id:
+            tasks.pop(i)
+            return
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"Task {task_id} not found"
+    )    
